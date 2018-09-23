@@ -1,0 +1,79 @@
+{{#each foo}} {{this}} {{/each}}
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+
+    <h3>Add a new lobby :(</h3>
+    <form id="addlobby" action="/lobby" method="post">
+
+    <div class="form-group">
+       name:
+      <input type="text" name="name">
+    </div>     
+
+    <div class="form-group">
+        money:
+      <input type="number" name="money" min="1">
+    </div>
+
+    <div class="form-group">
+     Bill to Endorse:
+     
+    </div>
+
+      <select name="bill_endorsed">
+        {{#each bills}}
+        <option value="{{id}}"> {{bill_name}} -- {{description}}</option>
+        {{/each}}
+      </select>
+    
+      <input type="submit" value="Submit">
+    </form>
+    <br>
+    
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Money</th>
+        <th>Bill endorsed</th>
+
+      </thead>
+      <h3>Lobby:</h3>
+      <tbody>
+        {{#each lobbies}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{money}}</td>
+          <td>{{bill_endorsed}}</td>
+          <td>
+            <button onclick="deleteLobby({{id}})">Delete</button>
+          </td>
+          <td>
+            <a href="/lobby/{{id}}">Update</a>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+</div>
+</div>

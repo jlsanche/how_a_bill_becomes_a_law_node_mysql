@@ -1,0 +1,13 @@
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+
+    <h1>Update: {{oneCongressMember.name}} </h1>
+    <form id="update-congress" action="/congress" method="post">
+      Name:
+      <input type="text" name="name" value="{{oneCongressMember.name}}">
+
+    </form>
+    <button onclick="updateCongress({{oneCongressMember.id}})">Update</button>
+
+  </div>
+</div>

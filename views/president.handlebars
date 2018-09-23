@@ -1,0 +1,85 @@
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+
+      {{!-- <h3>Add a bill to President's desk:</h3>
+    <form id="add_bill" action="/president" method="post">
+      
+      <select  multiple name="bill_to_desk">
+        {{#each details}}
+        <option value="{{president}}"> {{bill_name}} -- {{bill_desc}}</option>
+        {{/each}}
+      </select>
+      <br>
+      <input type="submit" value="Submit">
+    </form>
+    <br/> --}}
+
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Bill On Desk</th>
+        <th>Bill Name</th>
+        <th>Bill Description</th>
+        <th>Signed</th>
+
+      </thead>
+      <h3>President:</h3>
+      <tbody>
+        {{#each details}}
+        <tr>
+          <td>{{president}}</td>
+          <td>{{bill_on_desk}}</td>
+          <td>{{bill_name}}</td>
+          <td>{{bill_desc}}</td>
+          <td>{{signed}}</td>
+          <td>
+            <button onclick="deletePresident({{id}})">Delete</button>
+          </td>
+          <td>
+            <a href="/president/{{id}}">Change President's decision</a>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+  </div>
+
+   <dic class="card-body">
+
+    <h3>Add a bill to President's Desk: </h3>
+    <form id="addbilltodesk" action="/president" method="post">
+    
+      <br> Select Bill to Add:
+      
+      <select name="bill_endorsed">
+        {{#each bills}}
+        <option value="{{id}}"> {{bill_name}} -- {{description}}</option>
+        {{/each}}
+      </select>
+      <br>
+      <input type="submit" value="Submit">
+    </form>
+    <br/>
+
+
+</div>

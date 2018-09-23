@@ -1,0 +1,50 @@
+{{#each foo}}
+{{this}}
+{{/each}}
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+
+<div class="card">
+  <div class="card-body">
+
+     <table>
+      <thead>
+        <th>congress_member</th>
+        <th>Bill</th>
+        <th>Description</th>
+        <th>Vote</th>
+
+      </thead>
+      <h3>Voting Results</h3>
+      <tbody>
+        {{#each voting}}
+        <tr>
+          <td>{{congress_member}}</td>
+          <td>{{Bill}}</td>
+          <td>{{description}}</td>
+          <td>{{Vote}}</td>
+          
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+
+  </div>
+</div>

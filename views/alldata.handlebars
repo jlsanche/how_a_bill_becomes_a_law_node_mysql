@@ -1,0 +1,99 @@
+<style>
+
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Passed</th>
+
+      </thead>
+      <h3>Bills:</h3>
+      <tbody>
+        {{#each bills}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{description}}</td>
+          <td>{{passed}}</td>
+
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Money</th>
+        <th>Bill endorsed</th>
+
+      </thead>
+      <h3>Lobby Groups:</h3>
+      <tbody>
+        {{#each lobbies}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{money}}</td>
+          <td>{{bill_endorsed}}</td>
+
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <table>
+      <thead>
+        <th>Name</th>
+      </thead>
+      <h3>Members of Congress:</h3>
+      <tbody>
+        {{#each congressMembers}}
+        <tr>
+          <td>{{name}}</td>
+
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Signed</th>
+        <th>Bill On Desk</th>
+
+
+      </thead>
+      <h3>President:</h3>
+      <tbody>
+        {{#each president}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{signed}}</td>
+          <td>{{bill_on_desk}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+  </div>
+</div>

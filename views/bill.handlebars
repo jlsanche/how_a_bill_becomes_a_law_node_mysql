@@ -1,0 +1,67 @@
+ {{#each foo}} {{this}} {{/each}}
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+    <h3>Create a Bill:</h3>
+
+    <form id="add_bill" action="/bill" method="post">
+    <div class="form-group">
+      name: <input type="text" name="name">
+    </div>
+
+    <div class="form-group">
+      description: <input type="text" name="description">
+    </div>
+    
+    </select><br>
+    
+    <input type="submit" value="Submit">
+ </form>
+ <br>
+
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Passed</th>
+
+      </thead>
+      <h3>Bills:</h3>
+      <tbody>
+        {{#each bills}}
+        <tr>
+          <td>{{name}}</td>
+          <td>{{description}}</td>
+          <td>{{passed}}</td>
+          <td>
+            <button onclick="deleteBill({{id}})">Delete</button>
+          </td>
+          <td>
+            <a href="/bill/{{id}}">Update</a>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+
+  </div>
+</div>

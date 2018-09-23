@@ -1,0 +1,15 @@
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+
+    <h1>Update: {{oneCongressMember.name}} </h1>
+    <form id="update-lobby" action="/lobby" method="post">
+      Name:
+      <input type="text" name="name" value="{{oneLobbyGroup.name}}">
+    Money:
+    <input type="number" name="money" value="{{oneLobbyGroup.money}}">
+    
+    </form>
+    <button onclick="updateLobby({{oneLobbyGroup.id}})">Update</button>
+
+  </div>
+</div>

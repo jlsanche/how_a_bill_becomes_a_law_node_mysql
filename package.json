@@ -1,0 +1,25 @@
+{
+  "name": "cs340_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "bootstrap": "^4.1.1",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "express-handlebars": "^3.0.0",
+    "forever": "^0.15.3",
+    "jquery": "^3.3.1",
+    "mysql": "^2.15.0",
+    "nodemon": "^1.17.5",
+    "npm": "^6.4.1",
+    "popper.js": "^1.14.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jose L. Sanchez",
+  "license": "ISC"
+}

@@ -1,0 +1,20 @@
+
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+    <div class="card-body">
+
+        <h1>Update: {{onebill.name}} -{{onebill.description}}</h1>
+        <form id="update-bill" action="/bill" method="post">
+            Name:
+            <input type="text" name="name" value="{{onebill.name}}">
+            <br> Description:
+            <input type="text" name="description" value="{{onebill.description}}">
+            <br>
+
+        </form>
+        <button onclick="updateBill({{onebill.id}})">Update</button>
+
+    </div>
+</div>
+
+

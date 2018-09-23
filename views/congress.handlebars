@@ -1,0 +1,58 @@
+{{#each foo}} {{this}} {{/each}}
+
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+</style>
+
+<div class="card mb-4 mr-4 ml-">
+  <div class="card-body">
+
+    <form id="search_member" action="" method="">
+
+      <label> Search Congress Members by name starting with: </label>
+      <input type="text" name="name_search_string" id="name_search_string" value="">
+      <input type="button" value="Search" onclick="searchMemberByName()">
+
+    </form>
+  </div>
+</div>
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+    <table>
+      <thead>
+        <th>Name</th>
+
+      </thead>
+      <h3>Member of Congress:</h3>
+      <tbody>
+        {{#each congressMembers}}
+        <tr>
+          <td>{{name}}</td>
+          <td>
+            <button onclick="deleteMember({{id}})">Delete</button>
+          </td>
+          <td>
+            <a href="/congress/{{id}}">Update</a>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

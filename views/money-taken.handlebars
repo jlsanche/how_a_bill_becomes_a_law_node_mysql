@@ -1,0 +1,83 @@
+<style>
+  table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 77%;
+  }
+
+  td,
+  th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+
+  tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+
+  ,
+</style>
+{{#each foo}} {{this}} {{/each}}
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+  <div class="card-body">
+    <h3> Line pockets of more members of congress! </h3>
+    <form id="add_congress_lobby" action="/money-taken" method="post">
+    <div class="form-group">
+
+        Lobby:
+      <select name='lid'>
+        {{#each lobbies }}
+        <option value='{{lid}}'>{{name}} </option>
+        {{/each}}
+      </select>
+
+    </div>
+
+    <div class="form-group">
+
+
+    </div>
+    Members of Congress:
+     <select multiple class="selectpicker" name="congress">
+        {{#each congressmembers}}
+        <option value="{{cid}}">{{name}}</option>
+        {{/each}}
+      </select>
+      <br>
+      <input type="submit" value="Submit">
+        
+    </form>
+
+    <br/>
+    <h3> Congress Members and contributions </h3>
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Lobby</th>
+        <th>Contributions</th>
+      </thead>
+      <tbody>
+        {{#each money_taken_lobbies}}
+        <tr>
+          <td>{{congress_member}}</td>
+          <td>{{Lobby}}</td>
+          <td>{{lobby_contributions}}</td>
+
+          <td>
+            <button onclick="deleteCongressLobby({{cid}},{{lid}})">Delete</button>
+          </td>
+          <td>
+            <a href='#' onclick='javascript: alert("You can implement it just like the Add form.")'>Update</a>
+          </td>
+        </tr>
+        {{else}}
+        <b> No results. </b>
+        {{/each}}
+
+      </tbody>
+    </table>
+  </div>
+
+</div>
