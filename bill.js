@@ -9,7 +9,7 @@ router.get('/', async (req, res, next) => {
   const mysql = req.app.get('mysql');
   try {
     const bills = await getBills(mysql);
-    res.render('bill', { bills, jsscripts: ["deleteentity.js"] });
+    res.render('bill', { bills, jsscripts: ["js/bill.js"] });
   } catch (err) {
     next(err);
   }
@@ -43,8 +43,9 @@ router.post('/', async (req, res, next) => {
   const sql = "INSERT INTO bill (name, description) VALUES (?,?)";
   const inserts = [req.body.name, req.body.description];
   try {
-    await queryPromise(mysql, sql, inserts);
-    res.redirect('/bill');
+    const result = await queryPromise(mysql, sql, inserts);
+    const newBill = await getOneBill(mysql, result.insertId);
+    res.json(newBill[0]);
   } catch (err) {
     next(err);
   }

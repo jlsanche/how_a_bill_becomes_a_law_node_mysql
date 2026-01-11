@@ -21,7 +21,9 @@ const handlebars = create({
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 app.set('port', 4099);
-app.set('mysql', pool);
+
+const mysql = { pool };
+app.set('mysql', mysql);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/static', express.static('public'));
@@ -33,10 +35,10 @@ app.use('/money-taken', moneyTakenRouter);
 app.use('/president', presidentRouter);
 app.use('/', express.static('public'));
 
-const getBills = () => queryPromise(pool, "SELECT id, name, description, passed FROM bill");
-const getLobbyGroup = () => queryPromise(pool, "SELECT lobby_group.id, lobby_group.name, money, bill.name AS bill_endorsed FROM lobby_group INNER JOIN bill ON bill_endorsed = bill.id");
-const getPresident = () => queryPromise(pool, "SELECT id, name, signed, bill_on_desk FROM president");
-const getCongressMembers = () => queryPromise(pool, "SELECT id, name FROM member_congress");
+const getBills = () => queryPromise(mysql, "SELECT id, name, description, passed FROM bill");
+const getLobbyGroup = () => queryPromise(mysql, "SELECT lobby_group.id, lobby_group.name, money, bill.name AS bill_endorsed FROM lobby_group INNER JOIN bill ON bill_endorsed = bill.id");
+const getPresident = () => queryPromise(mysql, "SELECT id, name, signed, bill_on_desk FROM president");
+const getCongressMembers = () => queryPromise(mysql, "SELECT id, name FROM member_congress");
 
 app.get('/alldata', async (req, res, next) => {
   try {
@@ -54,7 +56,7 @@ app.get('/alldata', async (req, res, next) => {
 
 const getCongressVoting = () => {
   const sql = "SELECT cid, member_congress.name AS congress_member, bill.name AS Bill, bill.description AS description , vote.vote AS Vote from member_congress INNER JOIN  vote on member_congress.id = vote.cid INNER JOIN bill on bill.id = vote.bid  ORDER BY member_congress.name ASC";
-  return queryPromise(pool, sql);
+  return queryPromise(mysql, sql);
 };
 
 app.get('/voting', async (req, res, next) => {

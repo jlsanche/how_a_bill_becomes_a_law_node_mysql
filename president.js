@@ -4,7 +4,7 @@ const router = express.Router();
 
 const getPresident = (mysql) => queryPromise(mysql, "SELECT id, name, signed, bill_on_desk FROM president");
 const getBillDetails = (mysql) => queryPromise(mysql, "SELECT president.id, president.name AS president, bill_on_desk, signed, bill.name AS bill_name, bill.description AS bill_desc FROM president INNER JOIN bill ON bill.id = president.id");
-const getOnePres = (mysql, id) => queryPromise(mysql, "SELECT id, name, signed, bill_on_desk FROM president WHERE id = ?", [id]);
+const getOnePres = (mysql, id) => queryPromise(mysql, "SELECT president.id, president.name, signed, bill_on_desk, bill.name AS bill_name, bill.description AS bill_desc FROM president INNER JOIN bill ON bill.id = president.bill_on_desk WHERE president.id = ?", [id]);
 
 router.get('/', async (req, res, next) => {
   const mysql = req.app.get('mysql');
@@ -13,7 +13,7 @@ router.get('/', async (req, res, next) => {
       getPresident(mysql),
       getBillDetails(mysql)
     ]);
-    res.render('president', { president, details, jsscripts: ["deleteentity.js"] });
+    res.render('president', { president, details, jsscripts: ["js/president.js"] });
   } catch (err) {
     next(err);
   }
@@ -33,10 +33,11 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   const mysql = req.app.get('mysql');
   const sql = "INSERT INTO president(name, signed, bill_on_desk) VALUES (?,?,?)";
-  const inserts = [req.body.name, req.body.signed, req.body.bill_endorsed];
+  const inserts = [req.body.name, req.body.signed, req.body.bill_on_desk];
   try {
-    await queryPromise(mysql, sql, inserts);
-    res.redirect('/president');
+    const result = await queryPromise(mysql, sql, inserts);
+    const newPresident = await getOnePres(mysql, result.insertId);
+    res.json(newPresident[0]);
   } catch (err) {
     next(err);
   }

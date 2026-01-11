@@ -40,12 +40,12 @@
 
       </thead>
       <h3>Member of Congress:</h3>
-      <tbody>
+      <tbody id="congress-table">
         {{#each congressMembers}}
-        <tr>
+        <tr id="congress-{{id}}">
           <td>{{name}}</td>
           <td>
-            <button onclick="deleteMember({{id}})">Delete</button>
+            <button onclick="deleteMember(this, {{id}})">Delete</button>
           </td>
           <td>
             <a href="/congress/{{id}}">Update</a>
@@ -56,3 +56,17 @@
     </table>
   </div>
 </div>
+
+<div class="card mb-4 mt-4 mr-4 ml-4">
+    <div class="card-body">
+        <h3>Add a new Congress Member:</h3>
+        <form id="add_congress_member" action="/congress" method="post">
+            <div class="form-group">
+                Name: <input type="text" name="name">
+            </div>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</div>
+
+<script src="/static/js/congress.js"></script>

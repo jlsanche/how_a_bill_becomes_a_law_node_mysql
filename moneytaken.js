@@ -14,7 +14,7 @@ router.get('/', async (req, res, next) => {
       getLobby(mysql),
       getMoneyTakenFromLobbies(mysql)
     ]);
-    res.render('money-taken', { congressmembers, lobbies, money_taken_lobbies, jsscripts: ["deleteentity.js"] });
+    res.render('money-taken', { congressmembers, lobbies, money_taken_lobbies, jsscripts: ["js/money-taken.js"] });
   } catch (err) {
     next(err);
   }
@@ -29,12 +29,14 @@ router.post('/', async (req, res, next) => {
   }
 
   try {
-    for (const member of members) {
-      const sql = "INSERT INTO money_taken (cid, lid) VALUES (?,?)";
-      const inserts = [member, lobby];
-      await queryPromise(mysql, sql, inserts);
-    }
-    res.redirect('/money-taken');
+    const insertPromises = members.map(member => {
+        const sql = "INSERT INTO money_taken (cid, lid) VALUES (?,?)";
+        const inserts = [member, lobby];
+        return queryPromise(mysql, sql, inserts);
+    });
+    await Promise.all(insertPromises);
+    const results = await getMoneyTakenFromLobbies(mysql);
+    res.json(results);
   } catch (err) {
     next(err);
   }
