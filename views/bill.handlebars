@@ -46,14 +46,14 @@
 
       </thead>
       <h3>Bills:</h3>
-      <tbody>
+      <tbody id="bill-table">
         {{#each bills}}
-        <tr>
+        <tr id="bill-{{id}}">
           <td>{{name}}</td>
           <td>{{description}}</td>
           <td>{{passed}}</td>
           <td>
-            <button onclick="deleteBill({{id}})">Delete</button>
+            <button onclick="deleteBill(this, {{id}})">Delete</button>
           </td>
           <td>
             <a href="/bill/{{id}}">Update</a>
@@ -65,3 +65,5 @@
 
   </div>
 </div>
+
+<script src="/static/js/bill.js"></script>

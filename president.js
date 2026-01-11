@@ -1,129 +1,70 @@
-module.exports = function () {
-  var express = require('express');
-  var router = express.Router();
+import express from 'express';
+import { queryPromise } from './utils.js';
+const router = express.Router();
 
-  function getPresident(res, mysql, context, complete) {
-    mysql.pool.query("SELECT id, name, signed, bill_on_desk FROM president", function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end();
-      }
-      context.president = results;
-      complete();
-    });
+const getPresident = (mysql) => queryPromise(mysql, "SELECT id, name, signed, bill_on_desk FROM president");
+const getBillDetails = (mysql) => queryPromise(mysql, "SELECT president.id, president.name AS president, bill_on_desk, signed, bill.name AS bill_name, bill.description AS bill_desc FROM president INNER JOIN bill ON bill.id = president.id");
+const getOnePres = (mysql, id) => queryPromise(mysql, "SELECT president.id, president.name, signed, bill_on_desk, bill.name AS bill_name, bill.description AS bill_desc FROM president INNER JOIN bill ON bill.id = president.bill_on_desk WHERE president.id = ?", [id]);
+
+router.get('/', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  try {
+    const [president, details] = await Promise.all([
+      getPresident(mysql),
+      getBillDetails(mysql)
+    ]);
+    res.render('president', { president, details, jsscripts: ["js/president.js"] });
+  } catch (err) {
+    next(err);
   }
+});
 
-  function getOnePres(res, mysql, context, id, complete) {
-    var sql = "SELECT id, name, signed, bill_on_desk FROM president WHERE id = ?";
-    var inserts = [id];
-    mysql.pool.query(sql, inserts, function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end();
-      }
-      context.onepres = results[0];
-      complete();
-    });
+router.get('/:id', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  try {
+    const results = await getOnePres(mysql, req.params.id);
+    const onepres = results[0];
+    res.render('update-president', { onepres, jsscripts: ["updateentity.js", " deleteentity.js"] });
+  } catch (err) {
+    next(err);
   }
+});
 
-  function getBillDetails(res, mysql, context, complete) {
-    mysql.pool.query("SELECT president.id, president.name AS president, bill_on_desk, signed, bill.name AS bill_name, bill.description AS bill_desc FROM president INNER JOIN bill ON bill.id = president.id", function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end();
-      }
-      context.details = results;
-      complete();
-    });
+router.post('/', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  const sql = "INSERT INTO president(name, signed, bill_on_desk) VALUES (?,?,?)";
+  const inserts = [req.body.name, req.body.signed, req.body.bill_on_desk];
+  try {
+    const result = await queryPromise(mysql, sql, inserts);
+    const newPresident = await getOnePres(mysql, result.insertId);
+    res.json(newPresident[0]);
+  } catch (err) {
+    next(err);
   }
+});
 
+router.put('/:id', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  const sql = "UPDATE president SET signed =? WHERE id=?";
+  const inserts = [req.body.signed, req.params.id];
+  try {
+    await queryPromise(mysql, sql, inserts);
+    res.status(200).end();
+  } catch (err) {
+    next(err);
+  }
+});
 
+router.delete('/:id', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  const sql = "DELETE FROM president WHERE id = ?";
+  const inserts = [req.params.id];
+  try {
+    await queryPromise(mysql, sql, inserts);
+    res.status(202).end();
+  } catch (err) {
+    next(err);
+  }
+});
 
-  router.get('/', function (req, res) {
-    var callbackCount = 0;
-    var context = {};
-    context.jsscripts = ["deleteentity.js"];
-    var mysql = req.app.get('mysql');
-    getPresident(res, mysql, context, complete);
-    getBillDetails(res, mysql, context, complete);
-
-    function complete() {
-      callbackCount++;
-      if (callbackCount >= 2) {
-        res.render('president', context);
-      }
-
-    }
-  });
-
-  router.get('/:id', function (req, res) {
-    callbackCount = 0;
-    var context = {};
-    context.jsscripts = ["updateentity.js", " deleteentity.js"];
-    var mysql = req.app.get('mysql');
-    getOnePres(res, mysql, context, req.params.id, complete);
-
-    function complete() {
-      callbackCount++;
-      if (callbackCount >= 1) {
-        res.render('update-president', context);
-      }
-
-    }
-  });
-
-  router.post('/', function (req, res) {
-    console.log(req.body)
-    var mysql = req.app.get('mysql');
-    var sql = "INSERT INTO president(name, signed, bill_on_desk) VALUES (?,?,?)";
-    var inserts = [req.body.name, req.body.signed, req.body.bill_endorsed];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-      if (error) {
-        console.log(JSON.stringify(error))
-        res.write(JSON.stringify(error));
-        res.end();
-      } else {
-        res.redirect('/president');
-      }
-    });
-  });
-
-  router.put('/:id', function (req, res) {
-    var mysql = req.app.get('mysql');
-    console.log(req.body)
-    console.log(req.params.id)
-    var sql = "UPDATE president SET signed =? WHERE id=?";
-    var inserts = [req.body.signed, req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-      if (error) {
-        console.log(error)
-        res.write(JSON.stringify(error));
-        res.end();
-      } else {
-        res.status(200);
-        res.end();
-      }
-    });
-  });
-
-  router.delete('/:id', function (req, res) {
-    var mysql = req.app.get('mysql');
-    var sql = "DELETE FROM president WHERE id = ?";
-    var inserts = [req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.status(400);
-        res.end();
-      } else {
-        res.status(202).end();
-      }
-    })
-
-
-  })
-
-
-  return router;
-
-}();
+export default router;

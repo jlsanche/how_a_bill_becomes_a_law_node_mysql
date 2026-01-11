@@ -58,14 +58,14 @@
 
       </thead>
       <h3>Lobby:</h3>
-      <tbody>
+      <tbody id="lobby-table">
         {{#each lobbies}}
-        <tr>
+        <tr id="lobby-{{id}}">
           <td>{{name}}</td>
           <td>{{money}}</td>
           <td>{{bill_endorsed}}</td>
           <td>
-            <button onclick="deleteLobby({{id}})">Delete</button>
+            <button onclick="deleteLobby(this, {{id}})">Delete</button>
           </td>
           <td>
             <a href="/lobby/{{id}}">Update</a>
@@ -77,3 +77,5 @@
 
 </div>
 </div>
+
+<script src="/static/js/lobby.js"></script>

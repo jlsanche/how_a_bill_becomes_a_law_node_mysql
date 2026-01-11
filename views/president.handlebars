@@ -43,16 +43,16 @@
 
       </thead>
       <h3>President:</h3>
-      <tbody>
+      <tbody id="president-table">
         {{#each details}}
-        <tr>
+        <tr id="president-{{id}}">
           <td>{{president}}</td>
           <td>{{bill_on_desk}}</td>
           <td>{{bill_name}}</td>
           <td>{{bill_desc}}</td>
           <td>{{signed}}</td>
           <td>
-            <button onclick="deletePresident({{id}})">Delete</button>
+            <button onclick="deletePresident(this, {{id}})">Delete</button>
           </td>
           <td>
             <a href="/president/{{id}}">Change President's decision</a>
@@ -61,25 +61,23 @@
         {{/each}}
       </tbody>
     </table>
-
   </div>
-
-   <dic class="card-body">
-
-    <h3>Add a bill to President's Desk: </h3>
-    <form id="addbilltodesk" action="/president" method="post">
-    
-      <br> Select Bill to Add:
-      
-      <select name="bill_endorsed">
-        {{#each bills}}
-        <option value="{{id}}"> {{bill_name}} -- {{description}}</option>
-        {{/each}}
-      </select>
-      <br>
-      <input type="submit" value="Submit">
-    </form>
-    <br/>
-
-
 </div>
+
+<div class="card-body">
+    <h3>Add a new President:</h3>
+    <form id="add_president" action="/president" method="post">
+        <div class="form-group">
+            Name: <input type="text" name="name">
+        </div>
+        <div class="form-group">
+            Signed: <input type="text" name="signed">
+        </div>
+        <div class="form-group">
+            Bill on Desk: <input type="text" name="bill_on_desk">
+        </div>
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+<script src="/static/js/president.js"></script>

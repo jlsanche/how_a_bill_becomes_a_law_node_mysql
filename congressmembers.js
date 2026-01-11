@@ -1,167 +1,85 @@
-module.exports = function () {
-  var express = require('express');
-  var router = express.Router();
+import express from 'express';
+import { queryPromise } from './utils.js';
+const router = express.Router();
 
-  function getOneCongressMember(res, mysql, context, id, complete) {
-    var sql = "SELECT name FROM member_congress WHERE id = ?";
-    var inserts = [id];
-    mysql.pool.query(sql, inserts, function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end();
-      }
-      context.oneCongressMember = results[0];
-      complete();
+const getCongressMembers = (mysql) => queryPromise(mysql, "SELECT id, name FROM member_congress");
+const getLobbyGroup = (mysql) => queryPromise(mysql, "SELECT lobby_group.id AS Lobby_id, lobby_group.name AS Lobby, money, bill.name AS bill_endorsed FROM lobby_group INNER JOIN bill ON bill_endorsed = bill.id");
+const getOneCongressMember = (mysql, id) => queryPromise(mysql, "SELECT id, name FROM member_congress WHERE id = ?", [id]);
+const getMemberWithNameLike = (mysql, name) => {
+  const query = "SELECT id, name FROM member_congress WHERE name LIKE ?";
+  const inserts = [name + '%'];
+  return queryPromise(mysql, query, inserts);
+};
+
+router.get('/', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  try {
+    const [congressMembers, lobbies] = await Promise.all([
+      getCongressMembers(mysql),
+      getLobbyGroup(mysql)
+    ]);
+    res.render('congress', {
+      congressMembers,
+      lobbies,
+      jsscripts: ["js/congress.js", "searchmember.js", "updateentity.js"]
     });
+  } catch (err) {
+    next(err);
   }
+});
 
-  function getCongressMembers(res, mysql, context, complete) {
-    mysql.pool.query("SELECT id, name FROM member_congress", function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end();
-      }
-      context.congressMembers = results;
-      complete();
+router.get('/search/:s', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  try {
+    const [congressMembers, lobbies] = await Promise.all([
+      getMemberWithNameLike(mysql, req.params.s),
+      getLobbyGroup(mysql)
+    ]);
+    res.render('congress', {
+      congressMembers,
+      lobbies,
+      jsscripts: ['deleteentity.js', 'searchmember.js', 'updateentity.js']
     });
+  } catch (err) {
+    next(err);
   }
+});
 
-  function getLobbyGroup(res, mysql, context, complete) {
-    mysql.pool.query("SELECT lobby_group.id AS Lobby_id, lobby_group.name AS Lobby, money, bill.name AS bill_endorsed FROM lobby_group INNER JOIN bill ON bill_endorsed = bill.id" , function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end();
-      }
-      context.lobbies = results;
-      complete();
-    });
+router.get('/:id', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  try {
+    const results = await getOneCongressMember(mysql, req.params.id);
+    const oneCongressMember = results[0];
+    res.render('update-congress', { oneCongressMember, jsscripts: ["updateentity.js"] });
+  } catch (err) {
+    next(err);
   }
+});
 
-  function getMoneyTakenFromLobbies(res, mysql, context, complete) {
-    mysql.pool.query("SELECT member_congress.name AS congress_member,lobby_group.name AS Lobby, money AS lobby_contributions from member_congress INNER JOIN  money_taken on member_congress.id = money_taken.cid INNER JOIN lobby_group on lobby_group.id = money_taken.lid ORDER BY member_congress.name ASC",
-      function (error, results, fields) {
-        if (error) {
-          res.write(JSON.stringify(error));
-          res.end()
-        }
-        context.money_taken_lobbies = results;
-        complete();
-      });
+router.post('/', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  const sql = "INSERT INTO member_congress (name) VALUES (?)";
+  const inserts = [req.body.name];
+  try {
+    const result = await queryPromise(mysql, sql, inserts);
+    const newMember = await getOneCongressMember(mysql, result.insertId);
+    res.json(newMember[0]);
+  } catch (err) {
+    next(err);
   }
-
-   
-   function getMemberWithNameLike(req, res, mysql, context, complete) {
-    //sanitize the input as well as include the % character
-     var query = "SELECT name FROM member_congress WHERE name LIKE " + mysql.pool.escape(req.params.s + '%');
-    console.log(query)
-    mysql.pool.query(query, function(error, results, fields){
-          if(error){
-              res.write(JSON.stringify(error));
-              res.end();
-          }
-          context.congressMembers = results;
-          complete();
-      });
-  }
-
-
-
-  router.get('/', function (req, res) {
-    var callbackCount = 0;
-    var context = {};
-    context.jsscripts = ["deleteentity.js", "searchmember.js", "updateentity.js"];
-    var mysql = req.app.get('mysql');
-    getCongressMembers(res, mysql, context, complete);
-    //getMoneyTakenFromLobbies(res, mysql, context, complete);
-    getLobbyGroup(res, mysql, context, complete);
-
-    function complete() {
-      callbackCount++;
-      if (callbackCount >= 2) {
-        res.render('congress', context);
-      }
-
-    }
-  });
-
-
-  router.get('/:id', function (req, res) {
-    callbackCount = 0;
-    var context = {};
-    context.jsscripts = ["updateentity.js"];
-    var mysql = req.app.get('mysql');
-    getOneCongressMember(res, mysql, context, req.params.id, complete);
-
-    function complete() {
-      callbackCount++;
-      if (callbackCount >= 1) {
-        res.render('update-congress', context);
-      }
-
-    }
-  })
-
-  router.post('/', function(req, res){
-   
-    var mysql = req.app.get('mysql');
-    
-    var monies = req.body.monies
-    var congress = req.body.id
-    for (let money  of  monies) {
-      console.log("Processing certificate id " + cert)
-      var sql = "INSERT INTO bsg_cert_people (pid, cid) VALUES (?,?)";
-      var inserts = [congress, money];
-      sql = mysql.pool.query(sql, inserts, function(error, results, fields){
-        if(error){
-            //TODO: send error messages to frontend as the following doesn't work
-            /* 
-            res.write(JSON.stringify(error));
-            res.end();
-            */
-            console.log(error)
-        }
-      });
-    } //for loop ends here 
-    res.redirect('/money-taken');
 });
 
 
-  router.delete('/:id', function (req, res) {
-    var mysql = req.app.get('mysql');
-    var sql = "DELETE FROM member_congress WHERE id = ?";
-    var inserts = [req.params.id];
-    sql = mysql.pool.query(sql, inserts, function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.status(400);
-        res.end();
-      } else {
-        res.status(202).end();
-      }
-    })
-
-
-  })
-
-  router.get('/search/:s', function(req, res) {
-    var callbackCount = 0;
-    var context = {};
-    context.jsscripts = ['deleteentity.js','searchmember.js','updateentity.js']
-    var mysql = req.app.get('mysql');
-    getMemberWithNameLike(req, res, mysql, context, complete);
-    getLobbyGroup(res, mysql, context, complete);   
-    // getCongressMembers(res, mysql, context, complete);
-    function complete(){
-      callbackCount++;
-      if(callbackCount >= 2){
-          res.render('congress', context);
-      }
-
+router.delete('/:id', async (req, res, next) => {
+  const mysql = req.app.get('mysql');
+  const sql = "DELETE FROM member_congress WHERE id = ?";
+  const inserts = [req.params.id];
+  try {
+    await queryPromise(mysql, sql, inserts);
+    res.status(202).end();
+  } catch (err) {
+    next(err);
   }
+});
 
-  });
-
-  return router;
-
-
-}();
+export default router;

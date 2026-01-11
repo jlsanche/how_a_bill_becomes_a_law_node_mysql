@@ -1,87 +1,84 @@
-var express = require('express');
-var mysql = require('./dbcon.js');
-var bodyParser = require('body-parser');
+import express from 'express';
+import bodyParser from 'body-parser';
+import { create } from 'express-handlebars';
+import dotenv from 'dotenv';
 
-const dotenv = require('dotenv').config()
+import pool from './dbcon.js';
+import billRouter from './bill.js';
+import congressRouter from './congressmembers.js';
+import lobbyRouter from './lobbygroups.js';
+import moneyTakenRouter from './moneytaken.js';
+import presidentRouter from './president.js';
+import { queryPromise } from './utils.js';
 
-var app = express();
-var handlebars = require('express-handlebars').create({
+dotenv.config();
+
+const app = express();
+const handlebars = create({
   defaultLayout: 'main'
 });
 
 app.engine('handlebars', handlebars.engine);
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use('/static', express.static('public'));
 app.set('view engine', 'handlebars');
 app.set('port', 4099);
+
+const mysql = { pool };
 app.set('mysql', mysql);
-app.use('/bill', require('./bill.js'));
-app.use('/congress', require('./congressmembers.js'));
-app.use('/lobby', require('./lobbygroups.js'));
-app.use('/money-taken', require('./moneytaken.js'))
-app.use('/president', require('./president.js'));
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/static', express.static('public'));
+
+app.use('/bill', billRouter);
+app.use('/congress', congressRouter);
+app.use('/lobby', lobbyRouter);
+app.use('/money-taken', moneyTakenRouter);
+app.use('/president', presidentRouter);
 app.use('/', express.static('public'));
 
-app.get('/alldata', function (req, res) {
-  var callbackCount = 0;
-  var context = {};
-  
-  var mysql = req.app.get('mysql');
-  getBills(res, mysql, context, complete);
-  getLobbyGroup(res, mysql, context, complete);
-  getPresident(res, mysql, context, complete);
-  getCongressMembers(res, mysql, context, complete);
+const getBills = () => queryPromise(mysql, "SELECT id, name, description, passed FROM bill");
+const getLobbyGroup = () => queryPromise(mysql, "SELECT lobby_group.id, lobby_group.name, money, bill.name AS bill_endorsed FROM lobby_group INNER JOIN bill ON bill_endorsed = bill.id");
+const getPresident = () => queryPromise(mysql, "SELECT id, name, signed, bill_on_desk FROM president");
+const getCongressMembers = () => queryPromise(mysql, "SELECT id, name FROM member_congress");
 
-  function complete() {
-    callbackCount++;
-    if (callbackCount >= 4) {
-      res.render('alldata', context);
-    }
-
+app.get('/alldata', async (req, res, next) => {
+  try {
+    const [bills, lobbies, president, congressMembers] = await Promise.all([
+      getBills(),
+      getLobbyGroup(),
+      getPresident(),
+      getCongressMembers()
+    ]);
+    res.render('alldata', { bills, lobbies, president, congressMembers });
+  } catch (err) {
+    next(err);
   }
 });
 
-app.get('/voting', function (req, res) {
-  var callbackCount = 0;
-  var context = {};
-  var mysql = req.app.get('mysql');
-  getCongressVoting(res, mysql, context, complete);
+const getCongressVoting = () => {
+  const sql = "SELECT cid, member_congress.name AS congress_member, bill.name AS Bill, bill.description AS description , vote.vote AS Vote from member_congress INNER JOIN  vote on member_congress.id = vote.cid INNER JOIN bill on bill.id = vote.bid  ORDER BY member_congress.name ASC";
+  return queryPromise(mysql, sql);
+};
 
-  function complete() {
-    callbackCount++;
-    if (callbackCount >= 1) {
-      res.render('voting', context);
-    }
-
+app.get('/voting', async (req, res, next) => {
+  try {
+    const voting = await getCongressVoting();
+    res.render('voting', { voting });
+  } catch (err) {
+    next(err);
   }
 });
 
-
-function getCongressVoting(res, mysql, context, complete) {
-  mysql.pool.query("SELECT cid, member_congress.name AS congress_member, bill.name AS Bill, bill.description AS description , vote.vote AS Vote from member_congress INNER JOIN  vote on member_congress.id = vote.cid INNER JOIN bill on bill.id = vote.bid  ORDER BY member_congress.name ASC",
-    function (error, results, fields) {
-      if (error) {
-        res.write(JSON.stringify(error));
-        res.end()
-      }
-      context.voting = results;
-      complete();
-    });
-}
-
-app.use(function (req, res) {
+app.use((req, res) => {
   res.status(404);
   res.render('404');
 });
 
-app.use(function (err, req, res, next) {
+app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500);
   res.render('500');
 });
 
-app.listen(app.get('port'), function () {
-  console.log('Express started on http://flip3.engr.oregonstate:' + app.get('port'));
+app.listen(app.get('port'), () => {
+  console.log(`Express started on http://flip3.engr.oregonstate:${app.get('port')}`);
 });
